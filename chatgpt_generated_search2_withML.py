@@ -7,6 +7,9 @@ from sklearn.model_selection import train_test_split
 from sklearn.preprocessing import StandardScaler
 import xgboost as xgb
 import pandas as pd
+import permutations 
+
+from sklearn.preprocessing import LabelEncoder
 
 def generate_candidate_dice_set(num_dice=5, sides_per_die=30, value_range=(1, 150), allow_duplicates=False):
     all_values = list(range(value_range[0], value_range[1] + 1))
@@ -51,21 +54,21 @@ def analyze_permutation_distribution(permutation_string):
     expected_count = len(permutation_string) // 5 / 120
     count = Counter(permutation_string[i:i+5] for i in range(0, len(permutation_string), 5))
     
-    all_perms = [''.join(p) for p in permutations('abcde')]
+    all_perms = [''.join(str(p) for p in permutations.permutations('abcde'))]
     observed = [count.get(p, 0) for p in all_perms]
     uniform = [expected_count] * len(all_perms)
 
     # Chi-square
-    chi2_stat, chi2_p = chisquare(observed, f_exp=uniform)
+    #chi2_stat, chi2_p = chisquare(observed, f_exp=uniform)
 
     # KL divergence (log base 2)
-    observed_probs = [x / sum(observed) for x in observed]
-    kl_div = entropy(observed_probs, uniform, base=2)
+    # observed_probs = [x / sum(observed) for x in observed]
+    # kl_div = entropy(observed_probs, uniform, base=2)
 
     return {
-        "chi2_stat": chi2_stat,
-        "chi2_pval": chi2_p,
-        "kl_divergence": kl_div,
+        #"chi2_stat": chi2_stat,
+        #"chi2_pval": chi2_p,
+        #"kl_divergence": kl_div,
         "perm_distribution": count
     }
 
@@ -78,13 +81,13 @@ def evaluate_candidate_set(trials=100000, min_unique_perms=110):
     fairness_score = len(five_letter_perms)
 
     if fairness_score >= min_unique_perms:
-        analysis = analyze_permutation_distribution(s)
+        #analysis = analyze_permutation_distribution(s)
         return {
             "score": fairness_score,
             "dice_set": dice_set,
-            "chi2": analysis["chi2_stat"],
-            "pval": analysis["chi2_pval"],
-            "kl": analysis["kl_divergence"],
+            #"chi2": analysis["chi2_stat"],
+            #"pval": analysis["chi2_pval"],
+            #"kl": analysis["kl_divergence"],
             "label": 1  # 1 for good set
         }
     return None
@@ -99,9 +102,9 @@ def collect_data(num_candidates=1000, trials=100000, min_unique_perms=115):
             dice_flat = [num for die in result['dice_set'] for num in die]
             data.append({
                 "fairness_score": result["score"],
-                "chi2_stat": result["chi2"],
-                "chi2_pval": result["pval"],
-                "kl_divergence": result["kl"],
+                #"chi2_stat": result["chi2"],
+                #"chi2_pval": result["pval"],
+                #"kl_divergence": result["kl"],
                 "dice_set": dice_flat,
                 "label": result["label"]
             })
@@ -119,6 +122,9 @@ def train_ml_model(data):
 
     # Split the data
     X_train, X_test, y_train, y_test = train_test_split(features_scaled, labels, test_size=0.2, random_state=42)
+
+    le = LabelEncoder()
+    y_train = le.fit_transform(y_train)
 
     # Train an XGBoost model
     model = xgb.XGBClassifier(eval_metric="logloss")
