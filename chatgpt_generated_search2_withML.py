@@ -10,6 +10,7 @@ import pandas as pd
 import permutations 
 
 from sklearn.preprocessing import LabelEncoder
+from sklearn.model_selection import GridSearchCV
 
 def generate_candidate_dice_set(num_dice=5, sides_per_die=30, value_range=(1, 150), allow_duplicates=False):
     all_values = list(range(value_range[0], value_range[1] + 1))
@@ -127,7 +128,21 @@ def train_ml_model(data):
     y_train = le.fit_transform(y_train)
 
     # Train an XGBoost model
-    model = xgb.XGBClassifier(eval_metric="logloss")
+    #model = xgb.XGBClassifier(eval_metric="logloss")
+
+    parameters_to_be_searched = {
+    'base_score': [0.01, 0.99],
+    'learning_rate': [0.01, 1],
+    'n_estimatators': [1, 500],
+    }
+    #xgb_grid
+    model = GridSearchCV(estimator=xgb,
+                        param_grid=parameters_to_be_searched, 
+                        scoring='accuracy',
+                        cv=10,
+                        n_jobs=-1
+                   )
+
     model.fit(X_train, y_train)
 
     # Evaluate the model
