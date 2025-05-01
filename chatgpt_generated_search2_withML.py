@@ -136,7 +136,7 @@ def train_ml_model(data):
     'n_estimatators': [1, 500],
     }
     #xgb_grid
-    model = GridSearchCV(estimator=xgb,
+    model = GridSearchCV(estimator=xgb.XGBClassifier(eval_metric="logloss"),
                         param_grid=parameters_to_be_searched, 
                         scoring='accuracy',
                         cv=10,
