@@ -133,7 +133,7 @@ def train_ml_model(data):
     parameters_to_be_searched = {
     'base_score': [0.01, 0.99],
     'learning_rate': [0.01, 1],
-    'n_estimatators': [1, 500],
+    #'n_estimatators': [1, 500],
     }
     #xgb_grid
     model = GridSearchCV(estimator=xgb.XGBClassifier(eval_metric="logloss"),
@@ -152,7 +152,7 @@ def train_ml_model(data):
     return model, scaler
 
 def save_model_and_scaler(model, scaler, model_file="xgboost_model.json", scaler_file="scaler.pkl"):
-    model.save_model(model_file)
+    #model.save_model(model_file)
     with open(scaler_file, "wb") as f:
         import pickle
         pickle.dump(scaler, f)
